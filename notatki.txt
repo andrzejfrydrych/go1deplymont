@@ -1,0 +1,19 @@
+kubectl create namespace cattle-system
+helm install rancher rancher-latest/rancher --namespace cattle-system --set hostname=rancher.localtest.me --set bootstrapPassword=$PASSWORD
+  
+  
+  helm install rancher rancher-latest/rancher -n cattle-system --set hostname=rancher.localtest --set bootstrapPassword=$PASSWORD
+  
+  
+  kubectl get services hello-minikube
+  docker build . 
+  docker build -t kub-first-app .
+  kubectl.exe delete deployment first-app
+   kubectl.exe get all  
+   docker tag kub-girst-app wytrych/first-app-564775dddc-z6qpq
+   docker tag kub-first-app wytrych/first-app-564775dddc-z6qpq
+	
+	kubectl.exe create deployment first-app --image=wytrych/first-app-564775dddc-z6qpq
+	
+	kubectl expose deployment first-app --type=LoadBalancer --port=8080
+	kubectl get service
