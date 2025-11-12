@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notes-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notes-api
+  template:
+    metadata:
+      labels:
+        app: notes-api
+    spec:
+      containers:
+        - name: notes-api
+          image: wytrych/go1deplymont:apiv1
+          ports:
+            - containerPort: 8040
+
+#kubectl create namespace metallb-system
+#helm repo add metallb https://metallb.github.io/metallb
+#helm repo update
+#helm upgrade --install metallb metallb/metallb -n metallb-system
+#kubectl -n metallb-system get pods -w            
+#kubectl apply -f k8s-notes-svc.yaml
+#kubectl get svc notes-api -w
+#kubectl get pods -o wide
+#kubectl get svc notes-api -o wide
+

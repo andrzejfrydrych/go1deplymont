@@ -1,0 +1,15 @@
+#Run
+# MetalLB (raz)
+kubectl create namespace metallb-system 2>/dev/null || true
+helm repo add metallb https://metallb.github.io/metallb
+helm upgrade --install metallb metallb/metallb -n metallb-system
+kubectl apply -f metallb-ip-pool.yaml
+
+# Aplikacja
+kubectl apply -f k8s-notes-deploy.yaml
+kubectl apply -f k8s-notes-svc.yaml
+
+kubectl -n default get svc notes-api -o wide
+# oczekuj: EXTERNAL-IP: 172.17.128.79, PORT(S): 80:NNNNN/TCP,8040:MMMMM/TCP
+kubectl get pods -l app=notes-api -o wide
+curl --noproxy 172.17.128.79 http://172.17.128.79/notes

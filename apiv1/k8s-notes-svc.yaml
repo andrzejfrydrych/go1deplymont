@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notes-api
+  namespace: default
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 172.17.128.79
+  selector:
+    app: notes-api
+  ports:
+    - name: http-80
+      port: 80
+      targetPort: 8040
+      protocol: TCP
+    - name: http-8040
+      port: 8040
+      targetPort: 8040
+      protocol: TCP
+
+#kubectl apply -f k8s-notes-svc.yaml
+#kubectl get svc notes-api -o wide
