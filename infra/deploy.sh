@@ -24,3 +24,13 @@ az deployment group create \
 az acr show -g $RG -n rg-go1deplymont -o table
 
 
+
+#step 2 create logs and Azure container registry - ACR
+RG=rg-go1deplymont
+
+#another deploy execution 
+az deployment group create \
+  --resource-group $RG \
+  --template-file main.bicep \
+  --parameters acrName=go1deplymontacr
+
