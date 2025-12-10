@@ -82,7 +82,18 @@ az deployment group create \
                imageTag=latest
 
 
-az deployment group create   --resource-group $RG   --name main   --template-file infra/main.bicep   --parameters acrName=go1deplymontacr                appName=go1-app                imageRepo=go1deplymont                imageTag=latest
+#step4 deploy
+RG=rg-go1deplymont
+
+az deployment group create \
+  --resource-group $RG \
+  --template-file infra/main.bicep \
+  --parameters acrName=go1deplymontacr \
+               appName=go1-app \
+               imageRepo=go1deplymont \
+               imageTag=latest
+
+
 az deployment group show \
   --resource-group $RG \
   --name main \
@@ -137,3 +148,23 @@ frydrychan@k8s1:~/go1deplymont> az containerapp logs show \
 >   --resource-group $RG \
 >   --type system \
 >   --tail 50
+
+
+#clen up 1
+# replica = 0 will reduce cpu but logs and env will be still charged.
+az containerapp update \
+  --name go1-app \
+  --resource-group $RG \
+  --set template.scale.minReplicas=0
+
+#e.g. remove ACR:
+az acr delete \
+  --name go1deplymontacr \
+  --resource-group $RG \
+  --yes
+
+#remove all RG resource group will allow to get with cost to 0
+az group delete \
+  --name rg-go1deplymont \
+  --yes \
+  --no-wait
