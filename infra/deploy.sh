@@ -168,3 +168,20 @@ az group delete \
   --name rg-go1deplymont \
   --yes \
   --no-wait
+
+
+#redeploy app after go code changes example:
+export RG=rg-go1deplymont
+export ACR_NAME=go1deplymontacr
+export REGISTRY=${ACR_NAME}.azurecr.io
+export APP_VERSION=v2  
+az acr login --name $ACR_NAME
+docker build -t "$REGISTRY/go1deplymont:$APP_VERSION" .
+docker tag "$REGISTRY/go1deplymont:$APP_VERSION"            "$REGISTRY/go1deplymont:latest"
+docker image list
+docker tag "$REGISTRY/go1deplymont:latest"
+docker push "$REGISTRY/go1deplymont:$APP_VERSION"
+docker push "$REGISTRY/go1deplymont:latest"
+az acr repository show-tags   --name $ACR_NAME   --repository go1deplymont   -o table
+az containerapp update   --name go1-app   --resource-group $RG   --image "$REGISTRY/go1deplymont:$APP_VERSION"
+az containerapp show   --name go1-app   --resource-group $RG   --query "properties.configuration.ingress.fqdn"   -o tsv
