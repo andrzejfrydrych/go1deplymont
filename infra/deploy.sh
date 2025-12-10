@@ -5,7 +5,7 @@ az login --use-device-code
 #az account list -o table
 
 #Step 1
-RG=rg-go1deplymont
+export RG=rg-go1deplymont
 LOCATION=westeurope
 
 az group create \
@@ -26,7 +26,7 @@ az acr show -g $RG -n rg-go1deplymont -o table
 
 
 #step 2 create logs and Azure container registry - ACR
-RG=rg-go1deplymont
+export RG=rg-go1deplymont
 
 #another deploy execution 
 az deployment group create \
@@ -56,3 +56,67 @@ docker push $ACR_SERVER/go1deplymont:latest
 #frydrychan@k8s1:~/go1deplymont> docker push $ACR_SERVER/go1deplymont:latest
 #The push refers to repository [go1deplymontacr.azurecr.io/go1deplymont]
 #latest: digest: sha256:1737e9e9a3fb977f40fa3e047c0a560edb9861b7df58f9f250fdbc8250aa4e59 size: 3642
+
+#validation:
+az monitor log-analytics workspace list -g $RG -o table
+#frydrychan@k8s1:~/go1deplymont> az monitor log-analytics workspace list -g $RG -o table
+#CreatedDate                   CustomerId                            Location    ModifiedDate                  Name      ProvisioningState    PublicNetworkAccessForIngestion    PublicNetworkAccessForQuery    ResourceGroup    RetentionInDays
+#----------------------------  ------------------------------------  ----------  ----------------------------  --------  -------------------  ---------------------------------  -----------------------------  ---------------  -----------------
+#2025-12-09T21:35:54.8684866Z  a33749ee-670e-4742-ac2e-14567fd7297a  westeurope  2025-12-09T21:36:07.0520722Z  go1-logs  Succeeded            Enabled                            Enabled                        rg-go1deplymont  30
+
+az containerapp env list -g $RG -o table
+#
+#Location     Name     ResourceGroup
+#-----------  -------  ---------------
+#West Europe  go1-env  rg-go1deplymont
+
+
+export RG=rg-go1deplymont
+
+az deployment group create \
+  --resource-group $RG \
+  --template-file infra/main.bicep \
+  --parameters acrName=go1deplymontacr \
+               appName=go1-app \
+               imageRepo=go1deplymont \
+               imageTag=latest
+
+
+az deployment group create   --resource-group $RG   --name main   --template-file infra/main.bicep   --parameters acrName=go1deplymontacr                appName=go1-app                imageRepo=go1deplymont                imageTag=latest
+az deployment group show \
+  --resource-group $RG \
+  --name main \
+  --query properties.outputs.appFqdn.value \
+  -o tsv
+
+  frydrychan@k8s1:~/go1deplymont> az containerapp show \
+>   --name go1-app \
+>   --resource-group $RG \
+>   --query properties.configuration.ingress.fqdn \
+>   -o tsv
+go1-app.redground-26fb9c0c.westeurope.azurecontainerapps.io
+
+frydrychan@k8s1:~/go1deplymont> az containerapp show \
+>   --name go1-app \
+>   --resource-group $RG \
+>   --query properties.configuration.ingress.fqdn \
+>   -o tsv
+#will get URL:
+#go1-app.redground-26fb9c0c.westeurope.azurecontainerapps.io
+
+
+#frydrychan@k8s1:~/go1deplymont> wget https://go1-app.redground-26fb9c0c.westeurope.azurecontainerapps.io/notes
+#--2025-12-10 01:31:43--  https://go1-app.redground-26fb9c0c.westeurope.azurecontainerapps.io/notes
+#Connecting to 10.172.107.13:1080... connected.
+#Proxy request sent, awaiting response... 200 OK
+#Length: 828 [text/plain]
+#Saving to: ‘notes’
+
+#notes                                      100%[=====================================================================================>]     828  --.-KB/s    in 0s
+
+#2025-12-10 01:31:43 (196 MB/s) - ‘notes’ saved [828/828]
+
+#frydrychan@k8s1:~/go1deplymont> cat not
+#notatki.txt  notes
+#..
+

@@ -10,6 +10,15 @@ param lawName string = 'go1-logs'
 @description('Name of the Container Apps environment')
 param envName string = 'go1-env'
 
+@description('Name of the Container App')
+param appName string = 'go1-app'
+
+@description('Container image name (without registry)')
+param imageRepo string = 'go1deplymont'
+
+@description('Container image tag')
+param imageTag string = 'latest'
+
 /* ACR */
 resource acr 'Microsoft.ContainerRegistry/registries@2019-05-01' = {
   name: acrName
@@ -18,7 +27,6 @@ resource acr 'Microsoft.ContainerRegistry/registries@2019-05-01' = {
     name: 'Basic'
   }
   properties: {
-    /* bettern not use on production: */
     adminUserEnabled: true
   }
 }
@@ -35,7 +43,7 @@ resource law 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   }
 }
 
-/* Container Apps Environment */
+/* Container Apps Env */
 resource env 'Microsoft.App/managedEnvironments@2022-03-01' = {
   name: envName
   location: location
@@ -50,5 +58,41 @@ resource env 'Microsoft.App/managedEnvironments@2022-03-01' = {
   }
 }
 
+/* Container App */
+resource app 'Microsoft.App/containerApps@2022-03-01' = {
+  name: appName
+  location: location
+  properties: {
+    managedEnvironmentId: env.id
+    configuration: {
+      ingress: {
+        external: true
+        targetPort: 8080   // tu port z Dockerfile / aplikacji
+      }
+      registries: [
+        {
+          server: acr.properties.loginServer
+          username: acr.listCredentials().username
+          passwordSecretRef: 'acr-pwd'
+        }
+      ]
+      secrets: [
+        {
+          name: 'acr-pwd'
+          value: acr.listCredentials().passwords[0].value
+        }
+      ]
+    }
+    template: {
+      containers: [
+        {
+          name: 'go1-container'
+          image: '${acr.properties.loginServer}/${imageRepo}:${imageTag}'
+        }
+      ]
+    }
+  }
+}
+
+output fqdn string = app.properties.configuration.ingress.fqdn
 output acrLoginServer string = acr.properties.loginServer
-output envNameOut string = env.name
