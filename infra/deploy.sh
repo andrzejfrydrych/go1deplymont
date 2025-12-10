@@ -120,3 +120,20 @@ frydrychan@k8s1:~/go1deplymont> az containerapp show \
 #notatki.txt  notes
 #..
 
+#RG=rg-go1deplymont
+
+#read logs:
+
+frydrychan@k8s1:~/go1deplymont> az containerapp show \
+>   --name go1-app \
+>   --resource-group $RG \
+>   -o table
+Name     Location     ResourceGroup    Fqdn
+-------  -----------  ---------------  -----------------------------------------------------------
+go1-app  West Europe  rg-go1deplymont  go1-app.redground-26fb9c0c.westeurope.azurecontainerapps.io
+
+frydrychan@k8s1:~/go1deplymont> az containerapp logs show \
+>   --name go1-app \
+>   --resource-group $RG \
+>   --type system \
+>   --tail 50
